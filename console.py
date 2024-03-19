@@ -4,6 +4,7 @@
 """
 import cmd
 import json
+import re
 from models import storage
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
@@ -45,14 +46,6 @@ class HBNBCommand(cmd.Cmd):
             storage.new(new_inst)
             storage.save()
             print(new_inst.id)
-
-    # @staticmethod
-    # def kwargs_class_str(name, **keys):
-    #     """A static mothod that returns the instance based on **Kwargs"""
-    #     classes = {
-    #             'BaseModel': BaseModel(**keys).__str__()
-    #             }
-    #     return classes.get(name)
 
     def do_show(self, line):
         """Prints the string representation of an instance"""
@@ -122,7 +115,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_update(self, line):
         """Updates an instance"""
-        classes = ['BaseModel']
+        # classes = ['BaseModel']
         args = cmd.Cmd.parseline(self, line)
         with open("file.json", 'r', encoding="utf-8") as f:
             data = json.load(f)
@@ -140,14 +133,24 @@ class HBNBCommand(cmd.Cmd):
             if key not in data:
                 print("** no instance found **")
             elif key in data:
+
                 if len(para) == 1:
                     print("** attribute name missing **")
                 # elif len(para) == 2 and para[1] not in data[key][para[1]]:
                 elif len(para) == 2:
                     print("** value missing **")
                 elif len(para) > 2:
+                    quoted_flag = False
+                    if '"' in args[1]:
+                        quoted_str = re.findall(r'"(.*?)"', args[1])
+                        print(quoted_str)
+                        quoted_flag = True
                     print(type(data[key]))
-                    data[key].update({f"{para[1]}": para[2]})
+                    if quoted_flag is True:
+                        data[key].update({f"{para[1]}": str(quoted_str[0])})
+                        print("iam here")
+                    else:
+                        data[key].update({f"{para[1]}": para[2]})
                     print(data)
                     with open("file.json", 'w', encoding="utf-8") as f:
                         json.dump(data, f)
