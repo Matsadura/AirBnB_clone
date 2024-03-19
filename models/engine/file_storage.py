@@ -4,6 +4,10 @@
 """
 import json
 import os
+from models.base_model import BaseModel
+
+
+classes = {"BaseModel": BaseModel}
 
 
 class FileStorage():
@@ -25,15 +29,21 @@ class FileStorage():
             A public instance method that sets in __objects the Obj
             with key <obj class name>.id
         """
-        self.__objects[f"{obj.__class__.__name__}." + obj.id] = obj.to_dict()
+        # self.__objects[f"{obj.__class__.__name__}." + obj.id] = obj.to_dict()
+        self.__objects.update({f"{obj.__class__.__name__}." + obj.id: obj})
+        # self.__objects.update({f"{obj.__class__.__name__}.{obj.id}": obj})
 
     def save(self):
         """
             A public instance method that serializes __objects
             to the JSON file (path: __file_path)
         """
+        tmp = {}
+        for key in self.__objects:
+            tmp[key] = self.__objects[key].to_dict()
         with open(self.__file_path, 'w', encoding="utf-8") as f:
-            json.dump(self.__objects, f)
+            json.dump(tmp, f)
+        # print(self.__objects)
 
     def reload(self):
         """
@@ -42,4 +52,7 @@ class FileStorage():
         """
         if os.path.exists(self.__file_path) is True:
             with open(self.__file_path, 'r', encoding="utf-8") as f:
-                self.__objects = json.load(f)
+                tmp = json.load(f)
+            for key in tmp:
+                self.__objects[key] = classes[tmp[key]["__class__"]](**tmp[key])
+                # print(self.__objects)
