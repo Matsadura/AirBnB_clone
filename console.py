@@ -49,7 +49,6 @@ class HBNBCommand(cmd.Cmd):
 
     def do_show(self, line):
         """Prints the string representation of an instance"""
-        # classes = ['BaseModel']
         args = cmd.Cmd.parseline(self, line)
         if args[0] is None:
             print("** class name missing **")
@@ -64,8 +63,6 @@ class HBNBCommand(cmd.Cmd):
                 if key not in data:
                     print("** no instance found **")
                 else:
-                    # instance = BaseModel(**data[key]).__str__()
-                    # instance = self.kwargs_class_str(args[0], **data[key])
                     instance = classes[args[0]](**data[key])
                     print(instance)
 
@@ -92,7 +89,6 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, line):
         """Prints all string representation of all instances"""
-        # classes = ['BaseModel']
         all_instances = []
         args = cmd.Cmd.parseline(self, line)
         with open('file.json', 'r', encoding="utf-8") as f:
@@ -101,21 +97,18 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
         elif args[0] and args[0] in classes:
             for key in data.keys():
-                # instance = self.kwargs_class_str(args[0], **data[key])
                 instance = classes[args[0]](**data[key]).__str__()
                 all_instances.append(instance)
             print(all_instances)
         else:
             for key in data.keys():
                 name = data[key]['__class__']
-                # instance = self.kwargs_class_str(name, **data[key])
                 instance = classes[name](**data[key]).__str__()
                 all_instances.append(instance)
             print(all_instances)
 
     def do_update(self, line):
         """Updates an instance"""
-        # classes = ['BaseModel']
         args = cmd.Cmd.parseline(self, line)
         with open("file.json", 'r', encoding="utf-8") as f:
             data = json.load(f)
@@ -136,22 +129,18 @@ class HBNBCommand(cmd.Cmd):
 
                 if len(para) == 1:
                     print("** attribute name missing **")
-                # elif len(para) == 2 and para[1] not in data[key][para[1]]:
                 elif len(para) == 2:
                     print("** value missing **")
                 elif len(para) > 2:
                     quoted_flag = False
                     if '"' in args[1]:
                         quoted_str = re.findall(r'"(.*?)"', args[1])
-                        print(quoted_str)
                         quoted_flag = True
-                    print(type(data[key]))
                     if quoted_flag is True:
                         data[key].update({f"{para[1]}": str(quoted_str[0])})
-                        print("iam here")
                     else:
-                        data[key].update({f"{para[1]}": para[2]})
-                    print(data)
+                        data[key].update({f"{para[1]}": eval(para[2])})
+                        print(type(eval(para[2])))
                     with open("file.json", 'w', encoding="utf-8") as f:
                         json.dump(data, f)
 
