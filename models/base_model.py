@@ -2,7 +2,6 @@
 """
     A module that contains the class BaseModel
 """
-from models import storage
 import json
 from uuid import uuid4
 from datetime import datetime
@@ -20,6 +19,7 @@ class BaseModel():
                 *args: Not used
                 **kwargs: Contains the keys/value of an instance
         """
+        from models import storage
         if len(kwargs) != 0:
             for k, v in kwargs.items():
                 if k == "__class__":
@@ -45,8 +45,9 @@ class BaseModel():
                 A public instance method that updates the public instance
                 attribute updated_at with the current datetime
         """
-        storage.save()
+        from models import storage
         self.updated_at = datetime.now()
+        storage.save()
 
     def to_dict(self):
         """
@@ -59,5 +60,5 @@ class BaseModel():
                 dict_list.append((f"{k}", v.isoformat()))
             else:
                 dict_list.append((f"{k}", v))
-        dict_list.append((f"__class__", "BaseModel"))
+        dict_list.append((f"__class__", self.__class__.__name__))
         return dict(dict_list)
