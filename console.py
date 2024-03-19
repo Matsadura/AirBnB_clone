@@ -11,6 +11,9 @@ from models.base_model import BaseModel
 from colorama import Fore, Style
 
 
+classes = {"BaseModel": BaseModel}
+
+
 class HBNBCommand(cmd.Cmd):
     """
     """
@@ -43,17 +46,17 @@ class HBNBCommand(cmd.Cmd):
             storage.save()
             print(new_inst.id)
 
-    @staticmethod
-    def kwargs_class_str(name, **keys):
-        """A static mothod that returns the instance based on **Kwargs"""
-        classes = {
-                'BaseModel': BaseModel(**keys).__str__()
-                }
-        return classes.get(name)
+    # @staticmethod
+    # def kwargs_class_str(name, **keys):
+    #     """A static mothod that returns the instance based on **Kwargs"""
+    #     classes = {
+    #             'BaseModel': BaseModel(**keys).__str__()
+    #             }
+    #     return classes.get(name)
 
     def do_show(self, line):
         """Prints the string representation of an instance"""
-        classes = ['BaseModel']
+        # classes = ['BaseModel']
         args = cmd.Cmd.parseline(self, line)
         if args[0] is None:
             print("** class name missing **")
@@ -69,12 +72,13 @@ class HBNBCommand(cmd.Cmd):
                     print("** no instance found **")
                 else:
                     # instance = BaseModel(**data[key]).__str__()
-                    instance = self.kwargs_class_str(args[0], **data[key])
+                    # instance = self.kwargs_class_str(args[0], **data[key])
+                    instance = classes[args[0]](**data[key])
                     print(instance)
 
     def do_destroy(self, line):
         """Deletes an instance"""
-        classes = ['BaseModel']
+        # classes = ['BaseModel']
         args = cmd.Cmd.parseline(self, line)
         if args[0] is None:
             print("** class name missing **")
@@ -95,7 +99,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, line):
         """Prints all string representation of all instances"""
-        classes = ['BaseModel']
+        # classes = ['BaseModel']
         all_instances = []
         args = cmd.Cmd.parseline(self, line)
         with open('file.json', 'r', encoding="utf-8") as f:
@@ -104,13 +108,15 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
         elif args[0] and args[0] in classes:
             for key in data.keys():
-                instance = self.kwargs_class_str(args[0], **data[key])
+                # instance = self.kwargs_class_str(args[0], **data[key])
+                instance = classes[args[0]](**data[key]).__str__()
                 all_instances.append(instance)
             print(all_instances)
         else:
             for key in data.keys():
                 name = data[key]['__class__']
-                instance = self.kwargs_class_str(name, **data[key])
+                # instance = self.kwargs_class_str(name, **data[key])
+                instance = classes[name](**data[key]).__str__()
                 all_instances.append(instance)
             print(all_instances)
 
@@ -128,17 +134,23 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
         elif args[0] and args[1] is not None and args[1] != '':
             para = args[1].split(' ')
+            print(f"PARA : {para}, LEN: {len(para)}")
             key = f'{args[0]}.{para[0]}'
+            print(f"key: {key}")
             if key not in data:
                 print("** no instance found **")
             elif key in data:
                 if len(para) == 1:
                     print("** attribute name missing **")
-                elif len(para) == 2 and para[1] not in data[key][para[1]]:
+                # elif len(para) == 2 and para[1] not in data[key][para[1]]:
+                elif len(para) == 2:
                     print("** value missing **")
-        else:
-            
-
+                elif len(para) > 2:
+                    print(type(data[key]))
+                    data[key].update({f"{para[1]}": para[2]})
+                    print(data)
+                    with open("file.json", 'w', encoding="utf-8") as f:
+                        json.dump(data, f)
 
 
 if __name__ == "__main__":
