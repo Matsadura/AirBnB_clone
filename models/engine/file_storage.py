@@ -5,9 +5,18 @@
 import json
 import os
 from models.base_model import BaseModel
+from models.user import User
+from models.city import City
+from models.state import State
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 
 
-classes = {"BaseModel": BaseModel}
+classes = {"BaseModel": BaseModel, "User": User, "City": City,
+           "State": State, "Amenity": Amenity, "Review": Review,
+           "Place": Place
+           }
 
 
 class FileStorage():
@@ -29,9 +38,7 @@ class FileStorage():
             A public instance method that sets in __objects the Obj
             with key <obj class name>.id
         """
-        # self.__objects[f"{obj.__class__.__name__}." + obj.id] = obj.to_dict()
         self.__objects.update({f"{obj.__class__.__name__}." + obj.id: obj})
-        # self.__objects.update({f"{obj.__class__.__name__}.{obj.id}": obj})
 
     def save(self):
         """
@@ -43,7 +50,6 @@ class FileStorage():
             tmp[key] = self.__objects[key].to_dict()
         with open(self.__file_path, 'w', encoding="utf-8") as f:
             json.dump(tmp, f)
-        # print(self.__objects)
 
     def reload(self):
         """
@@ -52,7 +58,6 @@ class FileStorage():
         """
         if os.path.exists(self.__file_path) is True:
             with open(self.__file_path, 'r', encoding="utf-8") as f:
-                tmp = json.load(f)
-            for key in tmp:
-                self.__objects[key] = classes[tmp[key]["__class__"]](**tmp[key])
-                # print(self.__objects)
+                tp = json.load(f)
+            for key in tp:
+                self.__objects[key] = classes[tp[key]["__class__"]](**tp[key])

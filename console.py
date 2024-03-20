@@ -8,11 +8,20 @@ import re
 from models import storage
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
+from models.user import User
+from models.city import City
+from models.state import State
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 # TO REMOVE COLORS LATER
 from colorama import Fore, Style
 
 
-classes = {"BaseModel": BaseModel}
+classes = {"BaseModel": BaseModel, "User": User, "City": City,
+           "State": State, "Amenity": Amenity, "Review": Review,
+           "Place": Place
+           }
 
 
 class HBNBCommand(cmd.Cmd):
@@ -35,14 +44,15 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, line):
         """Creates a new instance of BaseModel and saves it to JSON"""
-        classes = ['BaseModel']
+        # classes = ['BaseModel']
         args = cmd.Cmd.parseline(self, line)
         if args[0] is None:
             print("** class name missing **")
         elif args[0] and args[0] not in classes:
             print("** class doesn't exist **")
         else:
-            new_inst = BaseModel()
+            # new_inst = BaseModel()
+            new_inst = classes[args[0]]()
             storage.new(new_inst)
             storage.save()
             print(new_inst.id)
