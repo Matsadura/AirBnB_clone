@@ -14,8 +14,6 @@ from models.state import State
 from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
-# TO REMOVE COLORS LATER
-from colorama import Fore, Style
 
 
 classes = {"BaseModel": BaseModel, "User": User, "City": City,
@@ -27,8 +25,32 @@ classes = {"BaseModel": BaseModel, "User": User, "City": City,
 class HBNBCommand(cmd.Cmd):
     """
     """
-    # TO REMOVE COLORS LATER
-    prompt = f"{Fore.GREEN}(hbnb){Style.RESET_ALL} "
+    prompt = f"(hbnb) "
+
+    # PRE CMD
+    def precmd(self, line):
+        # Check for .()
+        if not ("." in line and "(" in line and ")" in line):
+            return line
+
+        _cls = line.split('.')[0]
+        if _cls not in classes.keys():
+            print("** class doesn't exist **")
+            return line
+        if _cls:
+            args = re.findall(rf'{_cls}\.([a-zA-Z_]+)\((.*?)\)', line)
+            if args:
+                cmd = list(args[0])
+                # print(f"cmd: {cmd[1]}")
+                if cmd[0] == "update":
+                    paras = cmd[1].split(',')
+                    paras = [eval(item.strip()) for item in paras]
+                    # print(paras)
+                    line = f"{cmd[0]} {_cls} {paras[0]} {paras[1]} {paras[2]}"
+                    return line
+                cmd[1] = cmd[1].replace('"', '')
+                line = f"{cmd[0]} {_cls} {cmd[1]}\n"
+        return line
 
     def do_quit(self, line):
         """Exits the program"""
@@ -107,8 +129,9 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
         elif args[0] and args[0] in classes:
             for key in data.keys():
-                instance = classes[args[0]](**data[key]).__str__()
-                all_instances.append(instance)
+                if args[0] in key:
+                    instance = classes[args[0]](**data[key]).__str__()
+                    all_instances.append(instance)
             print(all_instances)
         else:
             for key in data.keys():
@@ -150,9 +173,25 @@ class HBNBCommand(cmd.Cmd):
                         data[key].update({f"{para[1]}": str(quoted_str[0])})
                     else:
                         data[key].update({f"{para[1]}": eval(para[2])})
-                        print(type(eval(para[2])))
+                        # print(type(eval(para[2])))
                     with open("file.json", 'w', encoding="utf-8") as f:
                         json.dump(data, f)
+
+    def do_count(self, line):
+        """ Counts the number of instances """
+        args = cmd.Cmd.parseline(self, line)
+        if args[0] is None:
+            print("** class name missing **")
+        elif args[0] and args[0] not in classes:
+            print("** class doesn't exist **")
+        else:
+            with open("file.json", 'r', encoding="utf-8") as f:
+                data = json.load(f)
+                i = 0
+                for key in data.keys():
+                    if args[0] in key:
+                        i += 1
+            print(i)
 
 
 if __name__ == "__main__":
