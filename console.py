@@ -74,7 +74,7 @@ class HBNBCommand(cmd.Cmd):
 
     def emptyline(self):
         """Does nothing if emptyline is entered"""
-        return cmd.Cmd.emptyline(self)
+        return ''
 
     def do_create(self, line):
         """Creates a new instance of BaseModel and saves it to JSON"""
