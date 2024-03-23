@@ -1,81 +1,117 @@
 #!/usr/bin/python3
-""" A module that contains test for the user module """
+"""
+A unittest for State class
+"""
+
 import unittest
-from datetime import datetime
 from models.state import State
 from models.base_model import BaseModel
+from models import storage
+from datetime import datetime
+import os
+import time
 
 
-class tests_State(unittest.TestCase):
-    """ A class for testing the State class """
+class TestStateClass(unittest.TestCase):
+    """Unittest class for testing class State
+    Test the following attributes
+    - name = ""
+    """
+    def setUp(self):
+        """setUp method"""
+        self.u1 = State()
+        self.u2 = State()
+        # dict_storage = storage.all()
+        # dict_storage = {}
 
-    def test_State(self):
-        """ Testing the integrity of State """
-        obj = State()
-        self.assertTrue(type(obj) is State)
-        self.assertIsInstance(obj, State)
-        self.assertTrue(issubclass(State, BaseModel))
+    def tearDown(self):
+        """tearDown method"""
+        del self.u1
+        del self.u2
+        if os.path.exists("file.json"):
+            os.remove("file.json")
 
-    def test_AttrsState(self):
-        """ Testing the attributes of State """
-        obj = State()
+    def test_State_id(self):
+        """Test State instance id"""
+        self.assertNotEqual(self.u1.id, self.u2.id)
 
-        self.assertIsNotNone(obj.id, True)
-        self.assertTrue(type(obj.id) is str)
+    # ***************************************************************
+    def test_State_name(self):
+        """Test State name"""
+        self.assertIsInstance(self.u1.name, str)
+        self.u1.name = "Mohamed"
+        self.assertEqual(self.u1.name, "Mohamed")
 
-        self.assertIsNotNone(obj.created_at, True)
-        self.assertTrue(type(obj.created_at) is datetime)
+    # *********************************************************
+    def test_datetime_attr(self):
+        """Test datetime attributes"""
+        self.assertIsInstance(self.u1.created_at, datetime)
+        self.assertIsInstance(self.u1.updated_at, datetime)
 
-        self.assertIsNotNone(obj.updated_at, True)
-        self.assertTrue(type(obj.updated_at) is datetime)
+    def test_initial_values(self):
+        """Test initial values for State class attributes"""
+        self.assertEqual(self.u1.name, "")
 
-        self.assertIsNotNone(obj.name, True)
-        self.assertTrue(type(obj.name) is str)
+    def test_state_inherits_BaseModel(self):
+        """Test if State inherits from BaseModel"""
+        self.assertIsInstance(self.u1, BaseModel)
 
-    def test_Str(self):
-        """ Testing the string representation of State """
-        obj = State()
-        string = f"[State] ({obj.id}) {obj.__dict__}"
+    def test_state_type(self):
+        """Test if State instance is of the same type"""
+        self.assertEqual(type(self.u1), State)
 
-        self.assertEqual(str(obj), string)
+    def test_storage_contains_instances(self):
+        """Test storage contains the instances"""
+        search_key = f"{self.u1.__class__.__name__}.{self.u1.id}"
+        self.assertTrue(search_key in storage.all().keys())
+        search_key = f"{self.u2.__class__.__name__}.{self.u2.id}"
+        self.assertTrue(search_key in storage.all().keys())
+        # self.u1.save()
+        # self.u2.save()
 
-    def test_Dict(self):
-        """ Testing the dictionary representation of State """
-        obj = State()
-        obj.name = "Zidane"
-        dict_rep = obj.to_dict()
-        o_create = obj.created_at.isoformat()
-        o_update = obj.updated_at.isoformat()
-        to_compare = {'id': obj.id, 'created_at': o_create,
-                      'updated_at': o_update, 'name': "Zidane",
-                      '__class__': 'State'
-                      }
+    def test_to_dict_id(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertIsInstance(dict_u1, dict)
+        self.assertIn('id', dict_u1.keys())
 
-        self.assertEqual(dict_rep, to_compare)
+    def test_to_dict_created_at(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertIsInstance(dict_u1, dict)
+        self.assertIn('created_at', dict_u1.keys())
 
-        self.assertTrue(type(dict_rep) is dict)
+    def test_to_dict_updated_at(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertIsInstance(dict_u1, dict)
+        self.assertIn('updated_at', dict_u1.keys())
 
-    def tests_Kwargs(self):
-        """ Testing creating State instance from a dict_rep """
-        dict_rep = {'id': "c123e880-c7d2-4af8-80ef-674f53a4586d",
-                    'created_at': "2024-03-21T15:25:35.581256",
-                    'updated_at': "2024-03-21T15:25:35.581259",
-                    'name': "Zidane", '__class__': 'NaN',
-                    }
-        obj = State(**dict_rep)
+    def test_to_dict_class_name(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertEqual(self.u1.__class__.__name__, dict_u1["__class__"])
 
-        self.assertEqual(obj.id, "c123e880-c7d2-4af8-80ef-674f53a4586d")
-        self.assertTrue(type(obj.id) is str)
+    def test_str_(self):
+        """Test __str__ method from BaseModel"""
+        cls_rp = str(self.u1)
+        format = "[{}] ({}) {}".format(self.u1.__class__.__name__,
+                                       self.u1.id, self.u1.__dict__)
+        self.assertEqual(format, cls_rp)
 
-        o_create = datetime.fromisoformat("2024-03-21T15:25:35.581256")
-        self.assertEqual(obj.created_at, o_create)
-        self.assertTrue(type(obj.created_at) is datetime)
+    def test_check_two_instances_with_dict(self):
+        """Test to check an instance created from a dict is different from
+another"""
+        dict_u1 = self.u1.to_dict()
+        instance = State(**dict_u1)
+        self.assertIsNot(self.u1, instance)
+        self.assertEqual(str(self.u1), str(instance))
+        self.assertFalse(instance is self.u1)
 
-        o_update = datetime.fromisoformat("2024-03-21T15:25:35.581259")
-        self.assertEqual(obj.updated_at, o_update)
-        self.assertTrue(type(obj.updated_at) is datetime)
-
-        self.assertEqual(obj.name, "Zidane")
-        self.assertTrue(type(obj.name) is str)
-
-        self.assertEqual(obj.__class__.__name__, 'State')
+    def test_save(self):
+        """Test save() method from BaseModel"""
+        update_old = self.u1.updated_at
+        time.sleep(0.1)
+        self.u1.save()
+        updated_new = self.u1.updated_at
+        self.assertNotEqual(update_old, updated_new)

@@ -1,97 +1,131 @@
 #!/usr/bin/python3
-""" A module that contains test for the user module """
+"""
+A unittest for Review class
+"""
+
 import unittest
-from datetime import datetime
 from models.review import Review
 from models.base_model import BaseModel
+from models import storage
+from datetime import datetime
+import os
+import time
 
 
-class tests_Review(unittest.TestCase):
-    """ A class for testing the Review class """
+class TestReviewClass(unittest.TestCase):
+    """Unittest class for testing class Review
+    Test the following attributes
+    - name = ""
+    """
+    def setUp(self):
+        """setUp method"""
+        self.u1 = Review()
+        self.u2 = Review()
+        # dict_storage = storage.all()
+        # dict_storage = {}
 
-    def test_Review(self):
-        """ Testing the integrity of Review """
-        obj = Review()
-        self.assertTrue(type(obj) is Review)
-        self.assertIsInstance(obj, Review)
-        self.assertTrue(issubclass(Review, BaseModel))
+    def tearDown(self):
+        """tearDown method"""
+        del self.u1
+        del self.u2
+        if os.path.exists("file.json"):
+            os.remove("file.json")
 
-    def test_AttrsReview(self):
-        """ Testing the attributes of Review """
-        obj = Review()
+    def test_Review_id(self):
+        """Test Review instance id"""
+        self.assertNotEqual(self.u1.id, self.u2.id)
 
-        self.assertIsNotNone(obj.id, True)
-        self.assertTrue(type(obj.id) is str)
+    # ***************************************************************
+    def test_Place_place_id(self):
+        """Test Place place_id"""
+        self.assertIsInstance(self.u1.place_id, str)
+        self.u1.place_id = "id"
+        self.assertEqual(self.u1.place_id, "id")
 
-        self.assertIsNotNone(obj.created_at, True)
-        self.assertTrue(type(obj.created_at) is datetime)
+    def test_Place_user_id(self):
+        """Test Place user_id"""
+        self.assertIsInstance(self.u1.user_id, str)
+        self.u1.user_id = "id"
+        self.assertEqual(self.u1.user_id, "id")
 
-        self.assertIsNotNone(obj.updated_at, True)
-        self.assertTrue(type(obj.updated_at) is datetime)
+    def test_Place_text(self):
+        """Test Place text"""
+        self.assertIsInstance(self.u1.text, str)
+        self.u1.text = "text"
+        self.assertEqual(self.u1.text, "text")
 
-        self.assertIsNotNone(obj.text, True)
-        self.assertTrue(type(obj.text) is str)
+    # *********************************************************
+    def test_datetime_attr(self):
+        """Test datetime attributes"""
+        self.assertIsInstance(self.u1.created_at, datetime)
+        self.assertIsInstance(self.u1.updated_at, datetime)
 
-        self.assertIsNotNone(obj.place_id, True)
-        self.assertTrue(type(obj.place_id) is str)
+    def test_initial_values(self):
+        """Test initial values for Review class attributes"""
+        self.assertEqual(self.u1.user_id, "")
+        self.assertEqual(self.u1.place_id, "")
+        self.assertEqual(self.u1.text, "")
 
-        self.assertIsNotNone(obj.user_id, True)
-        self.assertTrue(type(obj.user_id) is str)
+    def test_review_inherits_BaseModel(self):
+        """Test if Review inherits from BaseModel"""
+        self.assertIsInstance(self.u1, BaseModel)
 
-    def test_Str(self):
-        """ Testing the string representation of Review """
-        obj = Review()
-        string = f"[Review] ({obj.id}) {obj.__dict__}"
+    def test_review_type(self):
+        """Test if Review instance is of the same type"""
+        self.assertEqual(type(self.u1), Review)
 
-        self.assertEqual(str(obj), string)
+    def test_storage_contains_instances(self):
+        """Test storage contains the instances"""
+        search_key = f"{self.u1.__class__.__name__}.{self.u1.id}"
+        self.assertTrue(search_key in storage.all().keys())
+        search_key = f"{self.u2.__class__.__name__}.{self.u2.id}"
+        self.assertTrue(search_key in storage.all().keys())
+        # self.u1.save()
+        # self.u2.save()
 
-    def test_Dict(self):
-        """ Testing the dictionary representation of Review """
-        obj = Review()
-        obj.text = "Hello"
-        obj.place_id = "Lyon"
-        obj.user_id = "Zaoui"
-        dict_rep = obj.to_dict()
-        o_create = obj.created_at.isoformat()
-        o_update = obj.updated_at.isoformat()
-        to_compare = {'id': obj.id, 'created_at': o_create,
-                      'updated_at': o_update, 'text': "Hello",
-                      '__class__': 'Review', 'user_id': "Zaoui",
-                      'place_id': "Lyon"
-                      }
+    def test_to_dict_id(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertIsInstance(dict_u1, dict)
+        self.assertIn('id', dict_u1.keys())
 
-        self.assertEqual(dict_rep, to_compare)
+    def test_to_dict_created_at(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertIsInstance(dict_u1, dict)
+        self.assertIn('created_at', dict_u1.keys())
 
-        self.assertTrue(type(dict_rep) is dict)
+    def test_to_dict_updated_at(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertIsInstance(dict_u1, dict)
+        self.assertIn('updated_at', dict_u1.keys())
 
-    def tests_Kwargs(self):
-        """ Testing creating Review instance from a dict_rep """
-        dict_rep = {'id': "c123e880-c7d2-4af8-80ef-674f53a4586d",
-                    'created_at': "2024-03-21T15:25:35.581256",
-                    'updated_at': "2024-03-21T15:25:35.581259",
-                    'text': "Zidane", '__class__': 'NaN',
-                    'place_id': 'Meknes-1', 'user_id': "Zaoui"
-                    }
-        obj = Review(**dict_rep)
+    def test_to_dict_class_name(self):
+        """Test to_dict method from BaseModel"""
+        dict_u1 = self.u1.to_dict()
+        self.assertEqual(self.u1.__class__.__name__, dict_u1["__class__"])
 
-        self.assertEqual(obj.id, "c123e880-c7d2-4af8-80ef-674f53a4586d")
-        self.assertTrue(type(obj.id) is str)
+    def test_str_(self):
+        """Test __str__ method from BaseModel"""
+        cls_rp = str(self.u1)
+        format = "[{}] ({}) {}".format(self.u1.__class__.__name__,
+                                       self.u1.id, self.u1.__dict__)
+        self.assertEqual(format, cls_rp)
 
-        o_create = datetime.fromisoformat("2024-03-21T15:25:35.581256")
-        self.assertEqual(obj.created_at, o_create)
-        self.assertTrue(type(obj.created_at) is datetime)
+    def test_check_two_instances_with_dict(self):
+        """Test to check an instance created from a dict is different from
+another"""
+        dict_u1 = self.u1.to_dict()
+        instance = Review(**dict_u1)
+        self.assertIsNot(self.u1, instance)
+        self.assertEqual(str(self.u1), str(instance))
+        self.assertFalse(instance is self.u1)
 
-        o_update = datetime.fromisoformat("2024-03-21T15:25:35.581259")
-        self.assertEqual(obj.updated_at, o_update)
-        self.assertTrue(type(obj.updated_at) is datetime)
-
-        self.assertEqual(obj.text, "Zidane")
-        self.assertTrue(type(obj.text) is str)
-
-        self.assertEqual(obj.place_id, "Meknes-1")
-        self.assertTrue(type(obj.place_id) is str)
-
-        self.assertEqual(obj.user_id, "Zaoui")
-        self.assertTrue(type(obj.user_id) is str)
-
-        self.assertEqual(obj.__class__.__name__, 'Review')
+    def test_save(self):
+        """Test save() method from BaseModel"""
+        update_old = self.u1.updated_at
+        time.sleep(0.1)
+        self.u1.save()
+        updated_new = self.u1.updated_at
+        self.assertNotEqual(update_old, updated_new)
