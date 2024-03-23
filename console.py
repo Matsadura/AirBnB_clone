@@ -192,10 +192,10 @@ class HBNBCommand(cmd.Cmd):
                     elif len(para) > 2:
                         quoted_flag = False
                         if '"' in args[1]:
-                            quoted_str = re.findall(r'"(.*?)"', args[1])
+                            quote_str = re.findall(r'"(.*?)"', args[1])
                             quoted_flag = True
                         if quoted_flag is True:
-                            data[key].update({f"{para[1]}": str(quoted_str[0])})
+                            data[key].update({f"{para[1]}": str(quote_str[0])})
                         else:
                             data[key].update({f"{para[1]}": eval(para[2])})
                             # print(type(eval(para[2])))
