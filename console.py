@@ -56,12 +56,12 @@ class HBNBCommand(cmd.Cmd):
                 # print(f"cmd: {cmd[1]}")
                 if cmd[0] == "update":
                     paras = cmd[1].split(',')
-                    paras = [eval(item.strip()) for item in paras]
-                    # print(paras)
+                    paras = [item.strip() for item in paras]
+                    print(f"PRECMD : {paras}")
                     line = f"{cmd[0]} {_cls} {paras[0]} {paras[1]} {paras[2]}"
                     return line
                 cmd[1] = cmd[1].replace('"', '')
-                line = f"{cmd[0]} {_cls} {cmd[1]}\n"
+                line = f"{cmd[0]} {_cls} {cmd[1]}"
         return line
 
     def postcmd(self, stop, line):
@@ -147,62 +147,111 @@ class HBNBCommand(cmd.Cmd):
         """Prints all string representation of all instances"""
         all_instances = []
         args = cmd.Cmd.parseline(self, line)
-        with open('file.json', 'r', encoding="utf-8") as f:
-            data = json.load(f)
-        if args[0] and args[0] not in classes:
-            print("** class doesn't exist **")
-        elif args[0] and args[0] in classes:
-            for key in data.keys():
-                if args[0] in key:
-                    instance = classes[args[0]](**data[key]).__str__()
-                    all_instances.append(instance)
-            print(all_instances)
-        else:
-            for key in data.keys():
-                name = data[key]['__class__']
-                instance = classes[name](**data[key]).__str__()
-                all_instances.append(instance)
-            print(all_instances)
-
-    def do_update(self, line):
-        """Updates an instance"""
-        args = cmd.Cmd.parseline(self, line)
         try:
-            with open("file.json", 'r', encoding="utf-8") as f:
+            with open('file.json', 'r', encoding="utf-8") as f:
                 data = json.load(f)
-            if args[0] is None:
-                print("** class name missing **")
-            elif args[0] and args[0] not in classes:
+            if args[0] and args[0] not in classes:
                 print("** class doesn't exist **")
-            elif args[0] in classes and args[1] == '':
-                print("** instance id missing **")
-            elif args[0] and args[1] is not None and args[1] != '':
-                para = args[1].split(' ')
-                print(f"PARA : {para}, LEN: {len(para)}")
-                key = f'{args[0]}.{para[0]}'
-                print(f"key: {key}")
-                if key not in data:
-                    print("** no instance found **")
-                elif key in data:
-
-                    if len(para) == 1:
-                        print("** attribute name missing **")
-                    elif len(para) == 2:
-                        print("** value missing **")
-                    elif len(para) > 2:
-                        quoted_flag = False
-                        if '"' in args[1]:
-                            quote_str = re.findall(r'"(.*?)"', args[1])
-                            quoted_flag = True
-                        if quoted_flag is True:
-                            data[key].update({f"{para[1]}": str(quote_str[0])})
-                        else:
-                            data[key].update({f"{para[1]}": eval(para[2])})
-                            # print(type(eval(para[2])))
-                        with open("file.json", 'w', encoding="utf-8") as f:
-                            json.dump(data, f)
+            elif args[0] and args[0] in classes:
+                for key in data.keys():
+                    if args[0] in key:
+                        instance = classes[args[0]](**data[key]).__str__()
+                        all_instances.append(instance)
+                print(all_instances)
+            else:
+                for key in data.keys():
+                    name = data[key]['__class__']
+                    instance = classes[name](**data[key]).__str__()
+                    all_instances.append(instance)
+                print(all_instances)
         except FileNotFoundError:
-            print("** no instance found **")
+            pass
+
+    # TO REDO
+    def do_update(self, line):
+        """ update <class name> <id> <attribute> <value>
+            updates an attribute in a specific classname by a given value
+        """
+        # print(line)
+        if not line:
+            print(self.class_missing)
+            return
+
+        parsed_line = re.match(
+            r'^(\S*)\s?(\S*)\s?("[^"]+"|\S*)?\s?("[^"]+"|\S*)', line)
+        args = list(parsed_line.groups())
+        all_inst = storage.all()
+        # data_type = int
+
+        if not self.class_check(args):
+            return
+        if not self.id_check(args, all_inst):
+            return
+        if not self.attribute_check(args):
+            return
+
+        key, value = args[2], args[3]
+        try:
+            value = eval(value)
+        except Exception:
+            pass
+
+        search_key = f"{args[0]}.{args[1]}"
+        wanted_inst = all_inst[search_key]
+        setattr(wanted_inst, key, value)
+        wanted_inst.save()
+
+    class_missing = "** class name missing **"
+    class_nexist = "** class doesn't exist **"
+    id_missing = "** instance id missing **"
+    inst_missing = "** no instance found **"
+    attr_name_missing = "** attribute name missing **"
+    attr_value_missing = "** value missing **"
+
+    # HELPERS OF UPDATE
+    def class_check(self, args):
+        """checks the <classname> and handles it's errors"""
+        if len(args) == 0 or not args[0]:
+            print(self.class_missing)
+            return False
+
+        class_name = args[0]
+        if class_name not in classes.keys():
+            print(self.class_nexist)
+            return False
+
+        return True
+
+    def id_check(self, args, instances):
+        """checks the <id> and handles it's errors"""
+        if len(args) == 1 or not args[1]:
+            print(self.id_missing)
+            return False
+
+        args[1] = args[1].strip('"')
+        key = f"{args[0]}.{args[1]}"
+        if key not in instances.keys():
+            print(self.inst_missing)
+            return False
+
+        return True
+
+    def attribute_check(self, args):
+        """checks the <attributes> and handles it's errors"""
+
+        if len(args) == 2 or not args[2]:
+            print(self.attr_name_missing)
+            return False
+
+        args[2] = args[2].strip('"')
+        if args[2] in ['created_at', 'updated_at', 'id']:
+            return False
+
+        if not args[3]:
+            print(self.attr_value_missing)
+            return False
+
+        return True
 
     def do_count(self, line):
         """ Counts the number of instances """
