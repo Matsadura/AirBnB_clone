@@ -130,15 +130,18 @@ class HBNBCommand(cmd.Cmd):
         elif args[0] in classes and args[1] == '':
             print("** instance id missing **")
         else:
-            with open("file.json", 'r', encoding="utf-8") as f:
-                data = json.load(f)
-            key = f'{args[0]}.{args[1]}'
-            if key not in data:
+            try:
+                with open("file.json", 'r', encoding="utf-8") as f:
+                    data = json.load(f)
+                key = f'{args[0]}.{args[1]}'
+                if key not in data:
+                    print("** no instance found **")
+                else:
+                    data.pop(key)
+                    with open("file.json", 'w', encoding="utf-8") as f:
+                        json.dump(data, f)
+            except FileNotFoundError:
                 print("** no instance found **")
-            else:
-                data.pop(key)
-                with open("file.json", 'w', encoding="utf-8") as f:
-                    json.dump(data, f)
 
     def do_all(self, line):
         """Prints all string representation of all instances"""
@@ -164,39 +167,42 @@ class HBNBCommand(cmd.Cmd):
     def do_update(self, line):
         """Updates an instance"""
         args = cmd.Cmd.parseline(self, line)
-        with open("file.json", 'r', encoding="utf-8") as f:
-            data = json.load(f)
-        if args[0] is None:
-            print("** class name missing **")
-        elif args[0] and args[0] not in classes:
-            print("** class doesn't exist **")
-        elif args[0] in classes and args[1] == '':
-            print("** instance id missing **")
-        elif args[0] and args[1] is not None and args[1] != '':
-            para = args[1].split(' ')
-            print(f"PARA : {para}, LEN: {len(para)}")
-            key = f'{args[0]}.{para[0]}'
-            print(f"key: {key}")
-            if key not in data:
-                print("** no instance found **")
-            elif key in data:
+        try:
+            with open("file.json", 'r', encoding="utf-8") as f:
+                data = json.load(f)
+            if args[0] is None:
+                print("** class name missing **")
+            elif args[0] and args[0] not in classes:
+                print("** class doesn't exist **")
+            elif args[0] in classes and args[1] == '':
+                print("** instance id missing **")
+            elif args[0] and args[1] is not None and args[1] != '':
+                para = args[1].split(' ')
+                print(f"PARA : {para}, LEN: {len(para)}")
+                key = f'{args[0]}.{para[0]}'
+                print(f"key: {key}")
+                if key not in data:
+                    print("** no instance found **")
+                elif key in data:
 
-                if len(para) == 1:
-                    print("** attribute name missing **")
-                elif len(para) == 2:
-                    print("** value missing **")
-                elif len(para) > 2:
-                    quoted_flag = False
-                    if '"' in args[1]:
-                        quoted_str = re.findall(r'"(.*?)"', args[1])
-                        quoted_flag = True
-                    if quoted_flag is True:
-                        data[key].update({f"{para[1]}": str(quoted_str[0])})
-                    else:
-                        data[key].update({f"{para[1]}": eval(para[2])})
-                        # print(type(eval(para[2])))
-                    with open("file.json", 'w', encoding="utf-8") as f:
-                        json.dump(data, f)
+                    if len(para) == 1:
+                        print("** attribute name missing **")
+                    elif len(para) == 2:
+                        print("** value missing **")
+                    elif len(para) > 2:
+                        quoted_flag = False
+                        if '"' in args[1]:
+                            quoted_str = re.findall(r'"(.*?)"', args[1])
+                            quoted_flag = True
+                        if quoted_flag is True:
+                            data[key].update({f"{para[1]}": str(quoted_str[0])})
+                        else:
+                            data[key].update({f"{para[1]}": eval(para[2])})
+                            # print(type(eval(para[2])))
+                        with open("file.json", 'w', encoding="utf-8") as f:
+                            json.dump(data, f)
+        except FileNotFoundError:
+            print("** no instance found **")
 
     def do_count(self, line):
         """ Counts the number of instances """
