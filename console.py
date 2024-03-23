@@ -2,9 +2,10 @@
 """
     A module that contains the HBNBCommand class
 """
+import re
+import sys
 import cmd
 import json
-import re
 from models import storage
 from models.engine.file_storage import FileStorage
 from models.base_model import BaseModel
@@ -24,11 +25,22 @@ classes = {"BaseModel": BaseModel, "User": User, "City": City,
 
 class HBNBCommand(cmd.Cmd):
     """
+        The class of the command interpreter
     """
-    prompt = f"(hbnb) "
+    prompt = f"(hbnb) " if sys.__stdin__.isatty() else ''
+
+    def preloop(self):
+        """
+            Checks if the interpreter is in interactive mode
+        """
+        if not sys.__stdin__.isatty():
+            print('(hbnb)')
 
     # PRE CMD
     def precmd(self, line):
+        """
+            Parses the command line's input
+        """
         # Check for .()
         if not ("." in line and "(" in line and ")" in line):
             return line
