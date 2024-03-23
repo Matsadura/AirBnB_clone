@@ -107,14 +107,17 @@ class HBNBCommand(cmd.Cmd):
         elif args[0] in classes and args[1] == '':
             print("** instance id missing **")
         else:
-            with open("file.json", 'r', encoding="utf-8") as f:
-                data = json.load(f)
+            try:
+                with open("file.json", 'r', encoding="utf-8") as f:
+                    data = json.load(f)
                 key = f'{args[0]}.{args[1]}'
                 if key not in data:
                     print("** no instance found **")
                 else:
                     instance = classes[args[0]](**data[key])
                     print(instance)
+            except FileNotFoundError:
+                print("** no instance found **")
 
     def do_destroy(self, line):
         """Deletes an instance"""
