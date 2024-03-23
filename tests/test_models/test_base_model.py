@@ -15,10 +15,6 @@ class tests_BaseModel(unittest.TestCase):
         A class for testing the BaseModel Class
     """
 
-    #def setUp(self):
-        #if os.path.exists("file.json"):
-            #os.remove("file.json")
-
     def test_BaseModelType(self):
         """ Testing the type of an instance of BaseModel"""
         obj = BaseModel()
@@ -94,11 +90,6 @@ class tests_BaseModel(unittest.TestCase):
 
         self.assertTrue(type(obj.updated_at) is datetime.datetime)
         self.assertTrue((obj.updated_at == time) is False)
-
-        # TO DO - save(self) method of storage
-
-
-
 
     # Testing to_dict
     def test_ToDict(self):
